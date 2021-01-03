@@ -1,13 +1,14 @@
 ﻿using DatabaseAccessLayer.Models;
 using MongoDB.Driver;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DatabaseAccessLayer
 {
     public class DbContext
     {
         private string _databaseName = "xxx";
-        private string _connectionstring = "xxx";
+        private string _connectionstring = @$"xxx";
        
         private string _temperaturesDataSetName = "temperature";
         private string _heaterSettingsDataSetName = "heaterSettings";
@@ -24,7 +25,7 @@ namespace DatabaseAccessLayer
 
         public ICollection<Temperature> GetTemperatures()
         {
-            return _database.GetCollection<Temperature>(_temperaturesDataSetName).AsQueryable().ToList(); ;
+            return _database.GetCollection<Temperature>(_temperaturesDataSetName).AsQueryable().ToList();
         }
 
         public HeaterSettings GetHeaterSettings()
@@ -43,9 +44,18 @@ namespace DatabaseAccessLayer
             var result = _database.GetCollection<HeaterSettings>(_heaterSettingsDataSetName).ReplaceOne(filter, heaterSettings);
         }
 
-        public string GetPassword()
+        public bool CheckPassword(string enteredPassword)
         {
-            return _database.GetCollection<string>(_passwordDataSetName).AsQueryable().FirstOrDefault();
+            string validPassword = _database.GetCollection<Password>(_passwordDataSetName).AsQueryable().FirstOrDefault().PasswordValue;
+
+            if (validPassword == enteredPassword)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }
