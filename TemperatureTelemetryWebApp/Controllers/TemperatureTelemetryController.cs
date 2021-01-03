@@ -48,14 +48,20 @@ namespace TemperatureTelemetryWebApp.Controllers
         public ActionResult<TemperatureViewModel[]> GetTemperaturesMeasurements(int quantity)
         {
             List<Temperature> temperaturesMeasurement = _dal.GetTemperatures().ToList();
-            temperaturesMeasurement = temperaturesMeasurement.OrderBy(z => z.MeasurementDate).Take(quantity).ToList();
+            temperaturesMeasurement = temperaturesMeasurement.OrderByDescending(z => z.MeasurementDate).Take(quantity).ToList();
+            temperaturesMeasurement = temperaturesMeasurement.OrderBy(z => z.MeasurementDate).ToList();
 
             TemperatureViewModel[] reducedTemperatures = new TemperatureViewModel[quantity];
 
             for (int i = 0; i < temperaturesMeasurement.Count; i++)
             {
-                reducedTemperatures[i].Date = temperaturesMeasurement[i].MeasurementDate.ToString();
-                reducedTemperatures[i].Temp = temperaturesMeasurement[i].TemperatureValue;
+                TemperatureViewModel tmp = new TemperatureViewModel
+                {
+                    Date = temperaturesMeasurement[i].MeasurementDate.ToString("dd/MM/yyyy HH:mm"),
+                    Temperature = temperaturesMeasurement[i].TemperatureValue
+                };
+
+                reducedTemperatures[i] = tmp;
             }
 
             return Ok(reducedTemperatures);
@@ -70,7 +76,12 @@ namespace TemperatureTelemetryWebApp.Controllers
 
                 heaterSettings.SetTemperature = heaterSettingsReduced.SetTemperature;
                 heaterSettings.Hysteresis = heaterSettingsReduced.Hysteresis;
-                heaterSettings.PowerLevel = heaterSettings.PowerLevel;
+                heaterSettings.PowerLevel = heaterSettingsReduced.PowerLevel;
+
+                if (heaterSettings.PowerLevel != heaterSettingsReduced.PowerLevel)
+                {
+                    heaterSettings.PowerLevelHasChanged = true;
+                }
 
                 _dal.UpdateHeaterSettings(heaterSettings);
 

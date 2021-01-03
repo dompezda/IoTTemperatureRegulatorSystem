@@ -15,7 +15,7 @@ namespace TemperatureHubController
     public class Program
     {
         const string MQTTHOST = "xxx";
-        const int MQTTPORT = 111;
+        const int MQTTPORT = 0;
 
         const string MQTTDEVICE = "xxx";
         const string MQTTUSER = "xxx";
@@ -71,9 +71,13 @@ namespace TemperatureHubController
                 Console.WriteLine("########################################################");
                 Console.WriteLine();
 
+                //DateTime dateToSave = DateTime.Now;
+                //Azure
+                DateTime dateToSave = DateTime.Now.AddHours(1);
+
                 Temperature temp = new Temperature
                 {
-                    MeasurementDate = DateTime.Now,
+                    MeasurementDate = dateToSave,
                     TemperatureValue = Convert.ToDouble(temperatureValue)
                 };
 
@@ -92,8 +96,6 @@ namespace TemperatureHubController
 
             while (true)
             {
-                //Console.WriteLine("iteration");
-
                 List<Temperature> temperatures = dal.GetTemperatures().ToList();
                 HeaterSettings heaterSettings = dal.GetHeaterSettings();
 
@@ -151,7 +153,7 @@ namespace TemperatureHubController
                     } 
                 }
                 
-                Task.Delay(TimeSpan.FromSeconds(30)).Wait();
+                Task.Delay(TimeSpan.FromSeconds(10)).Wait();
             }
         }
     }
