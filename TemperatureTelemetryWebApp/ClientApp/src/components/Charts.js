@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from 'recharts';
 import { Temperature } from 'react-environment-chart';
-import { MDBBtn } from "mdbreact";
-
+import { MDBBtn, MDBRow, MDBCol, MDBCard, MDBCardBody } from "mdbreact";
+import qs from 'qs';
+import axios from 'axios';
 
 export class Charts extends Component {
     static displayName = Charts.name;
@@ -12,57 +13,64 @@ export class Charts extends Component {
 
         this.state = {
             refreshNeeded: false,
+            quantityOfDownloadedTemperatures: 50,
 
             setTemperature: 0,
             hysteresis: 0,
             heaterStateOn: false,
+            lastTemperature: 0,
 
             temperatures: [
                 {
-                    date: 'Page A', temp: 22,
+                    date: 'Page A', temperature: 22,
                 },
                 {
-                    date: 'Page B', temp: 24,
+                    date: 'Page B', temperature: 24,
                 },
             ]
         }
     }
 
     RefreshComponent = () => {
+        console.log("refreshed - downloaded new data");
+
+        this.getHeaterSettings();
+        this.getTemperatures();
+
         this.setState({
             refreshNeeded: !this.state.refreshNeeded
         });
     }
 
     getHeaterSettings = async (e) => {
-        e.preventDefault();
-
-        await axios.get("/api/TemperatureTelemetry/GetHeaterSettings", null,
+        await axios.get("/api/TemperatureTelemetry/GetHeaterSettings",
             {
                 params: {
-                    quantity: 50
-                }
+                },
             }).then(res => {
                 this.setState({
-                    setTemperature: res.setTemperature,
-                    hysteresis: res.hysteresis,
-                    powerLevel: res.heaterPowerLevel
+                    setTemperature: res.data.setTemperature,
+                    hysteresis: res.data.hysteresis,
+                    powerLevel: res.data.heaterPowerLevel,
+                    heaterStateOn: res.data.stateOn
                 });
             }).catch(err => {
             })
     };
 
     getTemperatures = async (e) => {
-        e.preventDefault();
-
-        await axios.get("/api/TemperatureTelemetry/GetTemperaturesMeasurements", null,
+        await axios.get("/api/TemperatureTelemetry/GetTemperaturesMeasurements",
             {
                 params: {
+                    quantity: this.state.quantityOfDownloadedTemperatures
+                },
+                paramsSerializer: params => {
+                    return qs.stringify(params)
                 }
-            }).then(response => response.json())
-            .then(result => {
+            }).then(response => {
                 this.setState({
-                    temperatures: result
+                    temperatures: response.data,
+                    lastTemperature: response.data[this.state.quantityOfDownloadedTemperatures-1].temperature
                 });
             })
             .catch(err => {
@@ -70,49 +78,61 @@ export class Charts extends Component {
     };
 
     componentDidMount() {
-        getHeaterSettings();
-        getTemperatures();
-        this.interval = setInterval(() => this.RefreshComponent(), 60000);
+        this.RefreshComponent();
+        this.interval = setInterval(() => this.RefreshComponent(), 10000);
     }
 
     render() {
         return (
-            <div>
+            <MDBRow center middle>
+                <MDBCol md="10" className="mt-4">
+                    <MDBCard>
+                        <MDBCardBody>
+                            <p className="h4 text-center py-4">Visualization</p>
 
-                <LineChart width={500} height={300} data={this.state.temperatures} margin={{ top: 20, right: 50, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <ReferenceLine y={this.state.setTemperature} label="Temperature Set" stroke="red" />
-                    <ReferenceLine y={this.state.setTemperature + this.state.hysteresis} label="Hysteresis" stroke="yellow" />
-                    <Line type="monotone" dataKey="temp" stroke="#8884d8" />
-                </LineChart>
+                            <MDBRow center middle>
 
-                <Temperature value={this.state.setTemperature} width={500} height={300} />
+                                <Temperature value={this.state.lastTemperature} width={500} height={300} />
 
-                <div>
-                    <MDBBtn gradient="blue">{this.state.setTemperature}</MDBBtn>
+                                <LineChart width={1000} height={400} data={this.state.temperatures} margin={{ top: 20, right: 50, left: 20, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="date" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Legend />
+                                    <ReferenceLine y={this.state.setTemperature} label="Temperature Set" stroke="red" />
+                                    <ReferenceLine y={this.state.setTemperature + this.state.hysteresis} label="Hysteresis" stroke="yellow" />
+                                    <Line type="monotone" dataKey="temperature" stroke="#8884d8" />
+                                </LineChart>
 
-                    <div className='custom-control custom-switch'>
-                        <label className='custom-control-label' htmlFor='customSwitches'>
-                            Disabled
-                        </label>
-                        <input
-                            type='checkbox'
-                            className='custom-control-input'
-                            id='customSwitches'
-                            checked={this.state.heaterStateOn}
-                            readOnly />
-                        <label className='custom-control-label' htmlFor='customSwitches'>
-                            Enabled
-                        </label>
-                    </div>
+                                <div>
+                                    <MDBBtn gradient="blue" size="lg" style={{ width: 250, height: 114 }}>Current Temperature <br></br>
+                                        <strong style={{ fontSize: 40 }}>{this.state.lastTemperature} &#8451;</strong>
+                                    </MDBBtn>
 
-                </div>
+                                    <br></br>
 
-            </div>
+                                    <MDBBtn gradient="blue" size="lg" style={{ width: 250, height:114 }}>
+                                        Heater Status
+                                        <div className='custom-control custom-switch'>
+                                            <input
+                                                type='checkbox'
+                                                className='custom-control-input'
+                                                id='customSwitches'
+                                                checked={this.state.heaterStateOn}
+                                                readOnly />
+                                            <label className='custom-control-label' htmlFor='customSwitches'>
+                                                <strong style={{ fontSize: 24 }}>{this.state.heaterStateOn === true ? "Enabled" : "Disabled"}</strong>
+                                            </label>
+                                        </div>
+                                    </MDBBtn>
+
+                                </div>
+                            </MDBRow>
+                        </MDBCardBody>
+                    </MDBCard>
+                </MDBCol>
+            </MDBRow>
         );
     }
 }
