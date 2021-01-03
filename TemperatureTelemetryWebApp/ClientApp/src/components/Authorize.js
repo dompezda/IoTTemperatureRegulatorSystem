@@ -1,13 +1,11 @@
 import React, { Component } from 'react';
 import { NotificationManager } from 'react-notifications';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { MDBRow, MDBCol, MDBInput, MDBBtn, MDBCard, MDBCardBody } from 'mdbreact';
 import { Core } from './Core';
 import axios from 'axios';
 
 export class Authorize extends Component {
     static displayName = Authorize.name;
-
-    //Grid + stylizacja z mdbootstrap
 
     constructor(props) {
         super(props);
@@ -50,26 +48,36 @@ export class Authorize extends Component {
         }
         else {
             return (
-                <div>
-                    <div className="grid-x grid-padding-x" style={{ marginTop: 30 }}>
-                        <div className="grid-container fluid callout translucent-form-overlay small-10 medium-8 large-4 cell">
-                            <div className="text-center">
-                                <h2>Verification</h2>
-                            </div>
-                            <form onSubmit={e => this.authorizeUser(e)}>
-                                <div className="grid-container">
-                                    <div>
-                                        <label><span><FontAwesomeIcon icon="key" /></span>Password</label>
-                                        <input type="password" name="password" onChange={e => this.changeValue(e)} value={this.state.password} />
+
+                <MDBRow center middle>
+                    <MDBCol md="4" className="mt-5">
+                        <MDBCard>
+                            <MDBCardBody>
+                                <form onSubmit={e => this.authorizeUser(e)}>
+                                    <p className="h4 text-center py-4">Verification</p>
+                                    <div className="grey-text">
+                                        <MDBInput
+                                            label="Your password"
+                                            icon="lock"
+                                            group
+                                            type="password"
+                                            validate
+                                            name="password"
+                                            onChange={e => this.changeValue(e)}
+                                            value={this.state.password}
+                                        />
                                     </div>
-                                    <div>
-                                        <button className="button secondary float-center" style={{ marginBottom: 0 }} type="submit">Verify</button>
+                                    <div className="text-center py-4 mt-3">
+                                        <MDBBtn color="indigo" type="submit">
+                                            Verify
+                                         </MDBBtn>
                                     </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                                </form>
+                            </MDBCardBody>
+                        </MDBCard>
+                    </MDBCol>
+                </MDBRow>
+
             )
         }
     }
