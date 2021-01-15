@@ -5,6 +5,7 @@ using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -14,15 +15,15 @@ namespace TemperatureHubController
 {
     public class Program
     {
-        const string MQTTHOST = "xxx";
-        const int MQTTPORT = 0;
+        const string MQTTHOST = "broker.hivemq.com";
+        const int MQTTPORT = 1883;
 
-        const string MQTTDEVICE = "xxx";
-        const string MQTTUSER = "xxx";
-        const string MQTTPASSWORD = "xxx";
+        const string MQTTDEVICE = "TemperatureHubController";
+        const string MQTTUSER = "";
+        const string MQTTPASSWORD = "";
 
-        const string MQTTSUBTOPIC = "xxx";
-        const string MQTTPUBTOPIC = "xxx";
+        const string MQTTSUBTOPIC = "TemperatureSensor/";
+        const string MQTTPUBTOPIC = "ESP8266_Heater/";
 
         const string SWITCH_OFF_HEATER = "0";
 
@@ -78,7 +79,7 @@ namespace TemperatureHubController
                 Temperature temp = new Temperature
                 {
                     MeasurementDate = dateToSave,
-                    TemperatureValue = Convert.ToDouble(temperatureValue)
+                    TemperatureValue = Math.Round(double.Parse(temperatureValue, CultureInfo.InvariantCulture), 1)
                 };
 
                 dal.AddTemperatureLevel(temp);
@@ -150,9 +151,9 @@ namespace TemperatureHubController
                                      .Build();
 
                         Task.Run(() => mqttClient.PublishAsync(message, CancellationToken.None).Wait());
-                    } 
+                    }
                 }
-                
+
                 Task.Delay(TimeSpan.FromSeconds(10)).Wait();
             }
         }
