@@ -70,7 +70,7 @@ export class Charts extends Component {
             }).then(response => {
                 this.setState({
                     temperatures: response.data,
-                    lastTemperature: response.data[this.state.quantityOfDownloadedTemperatures-1].temperature
+                    lastTemperature: response.data[response.data.length-1].temperature
                 });
             })
             .catch(err => {
@@ -97,11 +97,11 @@ export class Charts extends Component {
                                 <LineChart width={1000} height={400} data={this.state.temperatures} margin={{ top: 20, right: 50, left: 20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="date" />
-                                    <YAxis />
+                                    <YAxis type="number" domain={['dataMin - 0.5', 'dataMax']}/>
                                     <Tooltip />
                                     <Legend />
-                                    <ReferenceLine y={this.state.setTemperature} label="Temperature Set" stroke="red" />
-                                    <ReferenceLine y={this.state.setTemperature + this.state.hysteresis} label="Hysteresis" stroke="yellow" />
+                                    <ReferenceLine alwaysShow  y={this.state.setTemperature} label="Temperature Set" stroke="red" />
+                                    <ReferenceLine alwaysShow  y={this.state.setTemperature + this.state.hysteresis} label="Hysteresis" stroke="yellow" />
                                     <Line type="monotone" dataKey="temperature" stroke="#8884d8" />
                                 </LineChart>
 
