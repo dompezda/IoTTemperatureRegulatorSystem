@@ -96,10 +96,7 @@ void loop() {
       sensors.requestTemperatures(); 
 
 
-//      double vOut = (double)temperatureC;
-//      double b = (double)temperatureC;
-//      double test=printf("%.2f\n%.2f\n",temperatureC,b);
-//      sprintf(data, "%d", test);
+
       float temperatureC = sensors.getTempCByIndex(0);
       Serial.print(temperatureC);
       Serial.println("ºC");
